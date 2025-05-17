@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for long content */
+            min-height: 100vh;
+            padding-top: 20px; /* Add some padding at the top */
+            padding-bottom: 20px; /* Add some padding at the bottom */
+        }
+        .container {
+            width: 90%;
+            max-width: 700px;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        #score-container {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        #question-area {
+            margin-bottom: 20px;
+            min-height: 100px; /* To prevent layout jumps */
+            text-align: left;
+        }
+        #question-area h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #0056b3;
+        }
+        #question-area .options label {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s;
+        }
+        #question-area .options label:hover {
+            background-color: #eef;
+        }
+        #question-area .options input[type="radio"] {
+            margin-right: 10px;
+        }
+        #feedback-area {
+            margin-top: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+        .correct-feedback {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .incorrect-feedback {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .explanation {
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 0.95em;
+            color: #555;
+        }
+        button#action-button, button#restart-button {
+            padding: 12px 25px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        button#action-button:hover, button#restart-button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .final-score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Engineering Quiz</h1>
+        <div id="score-container">
+            Score: <span id="current-score">0</span> | Attempted: <span id="questions-answered">0</span> / <span id="total-questions">0</span>
+        </div>
+
+        <div id="question-area">
+            </div>
+
+        <div id="feedback-area" style="display:none;">
+            </div>
+
+        <button id="action-button">Start Quiz</button>
+        <button id="restart-button" style="display:none;" onclick="startQuiz()">Restart Quiz</button>
+    </div>
+
+    <script>
+        const quizData = [
+            // Ethics 1
+            {
+                topic: "Ethics 1",
+                question: "1. Which of the following best explains why is it important to study engineering ethics?",
+                options: [
+                    "a) The Engineer should know about the laws that apply to the products they design",
+                    "b) The Engineer has a responsibility for the profitability and success of the company they work for",
+                    "c) The Engineer has a responsibility for well-being of the public",
+                    "d) The Engineer should be a moral person"
+                ],
+                answer: "c",
+                explanation: "Engineering ethics primarily emphasizes the engineer's paramount responsibility to public safety and well-being."
+            },
+            {
+                topic: "Ethics 1",
+                question: "2. Which ethical theory is also known as deontological ethics?",
+                options: ["a) Utilitarianism", "b) Duty ethics", "c) Rights ethics", "d) Virtue ethics"],
+                answer: "b",
+                explanation: "Deontological ethics, or duty ethics, focuses on adherence to duties or rules to determine right actions."
+            },
+            {
+                topic: "Ethics 1",
+                question: "3. In utilitarianism, which one of the below has the highest priority?",
+                options: ["a) Rights of individuals", "b) Personal virtues", "c) Social benefits", "d) Rules and obligations"],
+                answer: "c",
+                explanation: "Utilitarianism prioritizes actions that produce the greatest overall good or social benefits for the most people."
+            },
+            {
+                topic: "Ethics 1",
+                question: "4. In the context of Engineering Ethics, which of the following defines a whistleblower?",
+                options: [
+                    "a) A person that reveals errors in system",
+                    "b) A person who blows through a restriction in order to create a sound",
+                    "c) A person who exposes an unlawful or immoral activity in an organization",
+                    "d) A person that controls the operation of a machine"
+                ],
+                answer: "c",
+                explanation: "A whistleblower is someone who reveals wrongdoing within an organization to the public or a higher authority."
+            },
+            {
+                topic: "Ethics 1",
+                question: "5. Which of the following best defines \"Rights ethics\"?",
+                options: [
+                    "a) A right choice is one that maximizes the well-being of society as a whole",
+                    "b) A right choice is one that follows ethical rules",
+                    "c) A right choice is one that protects the rights of individuals",
+                    "d) A right choice is one that supports good character traits"
+                ],
+                answer: "c",
+                explanation: "Rights ethics emphasizes the importance of respecting and protecting individual entitlements and moral rights."
+            },
+            {
+                topic: "Ethics 1",
+                question: "6. Which of the following best defines \"Utilitarianism\"?",
+                options: [
+                    "a) A right choice is one that maximizes the well-being of society as a whole",
+                    "b) A right choice is one that follows ethical rules",
+                    "c) A right choice is one that protects the rights of individuals",
+                    "d) A right choice is one that supports good character traits"
+                ],
+                answer: "a",
+                explanation: "Utilitarianism is an ethical theory that determines right from wrong by focusing on outcomes; specifically, maximizing overall happiness or well-being."
+            },
+            {
+                topic: "Ethics 1",
+                question: "7. Which of the following best defines \"Virtue Ethics\"?",
+                options: [
+                    "a) A right choice is one that maximizes the well-being of society as a whole",
+                    "b) A right choice is one that follows ethical rules",
+                    "c) A right choice is one that protects the rights of individuals",
+                    "d) A right choice is one that supports good character traits"
+                ],
+                answer: "d",
+                explanation: "Virtue ethics focuses on the moral character of the individual acting, rather than on duties, rules, or consequences of actions."
+            },
+            {
+                topic: "Ethics 1",
+                question: "8. Which of the following best defines \"Duty ethics\"?",
+                options: [
+                    "a) A right choice is one that maximizes the well-being of society as a whole",
+                    "b) A right choice is one that follows ethical rules",
+                    "c) A right choice is one that protects the rights of individuals",
+                    "d) A right choice is one that supports good character traits"
+                ],
+                answer: "b",
+                explanation: "Duty ethics (deontology) asserts that the morality of an action is based on whether that action itself is right or wrong under a series of rules, rather than based on the consequences."
+            },
+            {
+                topic: "Ethics 1",
+                question: "9. Which of the following does the social contract refer to?",
+                options: [
+                    "a) Socialising with employees in the company",
+                    "b) Designing products for society to use",
+                    "c) Consdering the well-being of the public",
+                    "d) Contracting work to members of the public"
+                ],
+                answer: "c",
+                explanation: "The social contract, in engineering ethics, refers to the profession's implicit agreement with society to prioritize public well-being in exchange for professional autonomy."
+            },
+            {
+                topic: "Ethics 1",
+                question: "10. Which one of the following best explains why cheating in an exam is unethical from the \"rights ethics\" view point?",
+                options: [
+                    "a) Students who don't cheat are more likely to learn the subject",
+                    "b) Students who cheat are more likely to get relatively higher grades",
+                    "c) Students who don't cheat are more likely to get relatively lower grades",
+                    "d) Students who cheat are less likely to learn the subject"
+                ],
+                answer: "c",
+                explanation: "From a rights ethics perspective, cheating infringes on the right of honest students to a fair evaluation and potentially fair access to opportunities based on merit."
+            },
+            {
+                topic: "Ethics 1",
+                question: "11. Professional ethics is *not* related with:",
+                options: ["a) Rights of individuals", "b) The well-being of the public", "c) Finanical profits", "d) Safety"],
+                answer: "c",
+                explanation: "While financial aspects are part of business, professional ethics primarily focuses on moral obligations over direct profit maximization."
+            },
+            {
+                topic: "Ethics 1",
+                question: "12. Professional ethics is *not* related with:",
+                options: ["a) Ethical culture of the organization", "b) Laws and regulations", "c) Personal beliefs and religion", "d) Code of ethics of the company"],
+                answer: "c",
+                explanation: "Professional ethics are based on shared professional standards and public good, distinct from an individual's personal beliefs or religion."
+            },
+            {
+                topic: "Ethics 1",
+                question: "13. Which one of the jobs below is *not* a profession?",
+                options: ["a) Pharmacist", "b) Doctor", "c) Cashier", "d) Engineer"],
+                answer: "c",
+                explanation: "A profession typically involves specialized knowledge, a commitment to public service, and self-regulation, which is not characteristic of a cashier role."
+            },
+            {
+                topic: "Ethics 1",
+                question: "14. An occupation or a job can also be called a profession if it possesses a number of essential attributes. Which one of the below is *not* one of these attributes?",
+                options: [
+                    "a) Work that requires a high level of skill, and the use of judgment",
+                    "b) Special organizations that are controlled by members of the profession to set standards",
+                    "c) Work for hire regardless of the required skill level or responsibilities",
+                    "d) Significant contribution to society"
+                ],
+                answer: "c",
+                explanation: "Professions require specialized skills and responsible judgment, not just any work for hire."
+            },
+            {
+                topic: "Ethics 1",
+                question: "15. What is the most fundamental right of an engineer?",
+                options: [
+                    "a) The right of disclosing proprietary information",
+                    "b) The right of keeping wrongdoings of close friends confidential",
+                    "c) The right of refusing to engage in unethical behaviour",
+                    "d) The right of whistle-blowing"
+                ],
+                answer: "c",
+                explanation: "Engineers have a fundamental professional right, and duty, to refuse to participate in unethical activities."
+            },
+            {
+                topic: "Ethics 1",
+                question: "16. There are three conditions for whistleblowing to be an acceptable action. Which of the below is not *one* of those conditions?",
+                options: [
+                    "a) Need: there must be a clear harm that can be avoided",
+                    "b) Proximity: you must be in a good position to report the problem",
+                    "c) Benefit: the result must be beneficial for the company or organization",
+                    "d) Last resort: you must have tried all other channels to solve the problem"
+                ],
+                answer: "c",
+                explanation: "Whistleblowing is justified by preventing public harm, not necessarily by benefiting the company; it might even harm the company's reputation initially."
+            },
+            {
+                topic: "Ethics 1",
+                question: "17. Which one of the actions below is *not* a proper way of preventing whistleblowing in a company",
+                options: [
+                    "a) Providing rules and guidelines to help employees and management follow correct procedures",
+                    "b) Providing training to improve the capability of its employees and management",
+                    "c) Encouraging good working relationships between employees and management",
+                    "d) Punishing employees when they report ethical problems"
+                ],
+                answer: "d",
+                explanation: "Punishing reporters of ethical problems creates a culture of fear and discourages ethical conduct, likely increasing the need for external whistleblowing."
+            },
+            {
+                topic: "Ethics 1",
+                question: "18. There are four elements for creating an ethical culture within an organization. Which of the below is *not* one of those elements?",
+                options: [
+                    "a) A written code of ethics",
+                    "b) Ethics training for executives, managers, and employees",
+                    "c) A punishment system to avoid whistleblowing",
+                    "d) The availability of ethical advice (i.e. advice lines or offices)"
+                ],
+                answer: "c",
+                explanation: "An ethical culture encourages reporting issues through safe channels, not a system to punish and thus avoid whistleblowing."
+            },
+            {
+                topic: "Ethics 1",
+                question: "19. A corporation has many responsibilities. Which of the following is *least* related to Ethics?",
+                options: [
+                    "a) The legal responsibility to obey the laws set by society.",
+                    "b) The ethical responsibility to do what is right even when not compelled to do so by law",
+                    "c) The economic responsibility to be profitable.",
+                    "d) The philanthropic responsibility to contributed resources to improve quality of life"
+                ],
+                answer: "c",
+                explanation: "While economic viability is crucial, profitability itself is an economic goal, whereas ethics concerns how that profit is made and other moral obligations."
+            },
+            {
+                topic: "Ethics 1",
+                question: "20. Ethics is important in the following industry:",
+                options: ["a) The health sector", "b) Engineering", "c) The education sector", "d) All of the above"],
+                answer: "d",
+                explanation: "Ethics is crucial in all professions and industries as they all involve human interaction, responsibilities, and potential impacts on individuals and society."
+            },
+            // ENR3001 - Ethics 2
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "21. What category of accident is an automatic braking system designed to reduce?",
+                options: ["a) Procedural accidents", "b) Engineering accidents", "c) Systemic accidents", "d) None of the above"],
+                answer: "b",
+                explanation: "Automatic braking systems are engineering controls designed to prevent failures or mitigate consequences related to the engineered system (e.g., vehicle)."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "22. Which of the follow does *not* describe a hazard?",
+                options: [
+                    "a) The probability of bridge breaking under the load of a heavy truck",
+                    "b) A large unmarked hole in a road",
+                    "c) An unshielded radioactive source",
+                    "d) A high voltage terminal that can be touched by a child"
+                ],
+                answer: "a",
+                explanation: "A hazard is a potential source of harm; 'probability' (a) describes risk, which combines hazard and likelihood."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "23. Which of the following decreases the risk of driving?",
+                options: ["a) Driving more", "b) Wearing a seat belt", "c) Using a phone while driving", "d) Driving with faulty brakes"],
+                answer: "b",
+                explanation: "Wearing a seat belt is a safety measure that reduces the severity of harm in an accident, thus decreasing overall risk."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "24. Which of the following best defines risk?",
+                options: [
+                    "a) The sum of the hazard and the severity of the harm",
+                    "b) The product of the hazard and the severity of the harm",
+                    "c) The sum of the probability of harm and the severity of the harm",
+                    "d) The product of the probability of the harm and the severity of the harm"
+                ],
+                answer: "d",
+                explanation: "Risk is commonly defined as the product of the probability of an event occurring and the severity of its consequences."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "25. Which of the following best describes how a product can be determined to be safe for the public to use?",
+                options: [
+                    "a) Rigorously test the product under a wide variety or operational conditions",
+                    "b) The product reflects current engineering standards",
+                    "c) Alternative designs were considered and the current design is the safest",
+                    "d) The product complies with the law (local, national and international)"
+                ],
+                answer: "a",
+                explanation: "Rigorous testing under diverse conditions is the most direct way to verify a product's safety in practical use."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "26. Assume that for a Ford Pinto there is a 1% chance (per year) of having an accident involving a strong rear collision, and 1% of those result in a fire, and 1% of the fires result in an occupant death. Then what is the probability of death for a Pinto owner who drives the car for one year?",
+                options: ["a) 1 per cent", "b) 1 in a million", "c) 10", "d) 1"],
+                answer: "b",
+                explanation: "The probability is 0.01 (collision) * 0.01 (fire) * 0.01 (death) = 0.000001, which is 1 in a million."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "27. Safety can approximately be defined as:",
+                options: ["a) Probability of an adverse event", "b) State of being protected from risk", "c) Possibility of harm", "d) Severity of harm"],
+                answer: "b",
+                explanation: "Safety is the condition of being protected from or unlikely to cause danger, risk, or injury."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "28. Which statement proposed below is incorrect?",
+                options: [
+                    "a) Perceived risk is bigger if the risk is taken involuntarily",
+                    "b) A risk that is delayed is perceived as smaller",
+                    "c) A voluntary risk as perceived as a bigger risk",
+                    "d) If a risk is irreversible, it is perceived to be bigger"
+                ],
+                answer: "c",
+                explanation: "Voluntary risks are often perceived as smaller or more acceptable by individuals than involuntary risks."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "29. To maximise the safety of a product, the designer should follow five major steps. Which one of the below in *not* one of these steps?",
+                options: ["a) Comply with the law", "b) Consider alternative designs", "c) Foresee potential misuse", "d) Estimate the price of the product"],
+                answer: "d",
+                explanation: "Estimating price is a business/economic consideration, while the other options directly relate to safety design principles."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "30. In 1980, NORAD reported that the US was under missile attack. The problem was caused by a faulty circuit. Which of the following classifies this type of accident?",
+                options: ["a) Procedural accident", "b) Engineering accident", "c) Systemic accident", "d) None of the above"],
+                answer: "b",
+                explanation: "A faulty circuit represents a failure in the design or manufacturing of an engineered component, leading to an engineering accident."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "31. What is the major reason for global warming in the recent times?",
+                options: [
+                    "a) Increasing proportion of greenhouse gases in the atmosphere",
+                    "b) Decreasing ozone level in the atmosphere",
+                    "c) Using natural gas instead of coal as fuel in powerplants",
+                    "d) Increasing use of renewable energy resources"
+                ],
+                answer: "a",
+                explanation: "The scientific consensus is that the increase in atmospheric greenhouse gases from human activities is the primary driver of recent global warming."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "32. Which one of the following is not the result of human activity?",
+                options: ["a) Deforestation", "b) Volcanic eruption", "c) Acid rain", "d) Pollution"],
+                answer: "b",
+                explanation: "Volcanic eruptions are natural geological events, unlike the other options which are primarily caused or exacerbated by human activities."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "33. Environmental ethics is the part of environmental philosophy which considers extending the traditional boundaries of ethics to include:",
+                options: ["a) Animals", "b) The non-human world", "c) Outer space", "d) Plants"],
+                answer: "b",
+                explanation: "Environmental ethics broadens moral consideration to encompass the entire non-human world, including ecosystems, animals, and plants."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "34. The approach to ethics that assumes “ethics should and do vary with social/cultural context” is known as:",
+                options: ["a) Ethical culture", "b) Ethical worldview", "c) Anthropocentric ethics", "d) Ethical relativism"],
+                answer: "d",
+                explanation: "Ethical relativism is the view that moral or ethical statements vary from person to person or from society to society."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "35. Which concept in traditional ethics is decribed as: “Humans are the most important species, they have higher value and moral status than animals, we protect that which is useful to us”?",
+                options: ["a) Ethical Relativism", "b) Sentience", "c) Anthropocentric ethics", "d) Environmental ethics"],
+                answer: "c",
+                explanation: "Anthropocentric ethics is a human-centered view where humans are considered the most significant entity in the universe."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "36. In the historical evolution of ethical thinking, which option below has the correct chronological order in terms of what is included in the context of ethics?",
+                options: ["a) Self-Nation-Humans-Animals", "b) Nation-Humans-Self-Animals", "c) Humans-Animals-Self-Nation", "d) Self-Animals-Nation-Humans"],
+                answer: "a",
+                explanation: "Ethical consideration often expands outward: from oneself, to one's immediate group/nation, to all humans, and then to non-human animals and the environment."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "37. Which theory best describes the cost-benefit approach to environmental ethics?",
+                options: ["a) Utilitarianism", "b) Rights ethics", "c) Duty ethics", "d) Virtue ethics"],
+                answer: "a",
+                explanation: "Utilitarianism often employs a cost-benefit analysis to determine actions that maximize overall good, which can be applied to environmental decisions."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "38. Which theory best describes the cost-oblivious approach to environmental ethics?",
+                options: ["a) Utilitarianism", "b) Rights ethics", "c) Duty ethics", "d) Virtue ethics"],
+                answer: "c",
+                explanation: "Duty ethics (or rights ethics) may dictate certain actions as morally required (e.g., protecting a species) regardless of the economic costs involved."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "39. For an action to be environmentally ethical, it should:",
+                options: [
+                    "a) Increase human population",
+                    "b) Keep national interests paramount",
+                    "c) Not be more costly than the environmental harm that may result",
+                    "d) Comply with environmental laws and regulations"
+                ],
+                answer: "d",
+                explanation: "Compliance with laws is a baseline for ethical action, though robust environmental ethics often calls for more proactive measures."
+            },
+            {
+                topic: "ENR3001 - Ethics 2",
+                question: "40. Sentience can be best described as",
+                options: ["a) The ability to write", "b) The ability to reason", "c) The ability to suffer", "d) The ability to smell"],
+                answer: "c",
+                explanation: "Sentience refers to the capacity to feel, perceive, or experience subjectively, including the ability to suffer or experience pleasure."
+            },
+            // Project Management
+            {
+                topic: "Project Management",
+                question: "41. Which of the following is not considered as a characteristic of a project?",
+                options: ["a) Clear objective", "b) Defined life span", "c) Only for internal use", "d) Utilization of resources", "e) Uniqueness"],
+                answer: "c",
+                explanation: "Projects can be for internal or external stakeholders; being 'only for internal use' is not a defining characteristic."
+            },
+            {
+                topic: "Project Management",
+                question: "42. Which of the following is not one of the stages of a project life cycle?",
+                options: ["a) Conceptualizing", "b) Defining", "c) Planning", "d) Executing", "e) Delivering"],
+                answer: "b",
+                explanation: "'Defining' is often part of 'Conceptualizing' or 'Planning' rather than a distinct top-level stage in many models."
+            },
+            {
+                topic: "Project Management",
+                question: "43. Which of the following is not one of the characteristics of project objectives?",
+                options: ["a) Specific", "b) Relevant", "c) Timely", "d) Artistic", "e) Measurable"],
+                answer: "d",
+                explanation: "Project objectives are typically SMART (Specific, Measurable, Achievable, Relevant, Timely); 'Artistic' is not a standard characteristic."
+            },
+            {
+                topic: "Project Management",
+                question: "44. From among the following activities, which is the best example of a project?",
+                options: ["a) Routine production of a car model", "b) Practicing a musical instrument", "c) Taking notes", "d) Writing a journal article", "e) All of the above"],
+                answer: "d",
+                explanation: "Writing a journal article is a unique endeavor with a defined start, end, objective, and resource utilization, fitting the definition of a project."
+            },
+            {
+                topic: "Project Management",
+                question: "45. In which of the following stages of the project life cycle are project goals established, tasks specified, and responsibilities assigned?",
+                options: ["a) Defining", "b) Planning", "c) Executing", "d) Delivering", "e) None of the above"],
+                answer: "b",
+                explanation: "The Planning stage involves detailing the project scope, objectives, tasks, resources, schedule, and responsibilities."
+            },
+            {
+                topic: "Project Management",
+                question: "46. In which of the following stages of the project life cycle are you more likely to find status reports, changes, and forecasts?",
+                options: ["a) Defining", "b) Planning", "c) Executing", "d) Delivering", "e) None of the above"],
+                answer: "c",
+                explanation: "During the Executing stage (and Monitoring & Controlling), progress is tracked via status reports, changes are managed, and forecasts are updated."
+            },
+            {
+                topic: "Project Management",
+                question: "47. The process of defining, planning, executing and delivering within a specified time frame is:",
+                options: ["a) Process life cycle", "b) Leadership", "c) Responsibility matrix", "d) Project life cycle", "e) Statement of work"],
+                answer: "d",
+                explanation: "The project life cycle encompasses the distinct phases a project goes through from initiation to closure."
+            },
+            {
+                topic: "Project Management",
+                question: "48. Forward pass of network computations determines the early start and finish times.",
+                options: ["a) TRUE", "b) FALSE"],
+                answer: "a",
+                explanation: "The forward pass in critical path method (CPM) calculates the earliest start and finish dates for each activity."
+            },
+            {
+                topic: "Project Management",
+                question: "49. Backward pass of network computations determines the late start and finish times.",
+                options: ["a) TRUE", "b) FALSE"],
+                answer: "a",
+                explanation: "The backward pass in CPM calculates the latest start and finish dates for each activity without delaying the project."
+            },
+            {
+                topic: "Project Management",
+                question: "50. From among the following reasons which is not a cause for project failure?",
+                options: ["a) Selection of a unsound project", "b) Selecting the wrong person as a project manager", "c) Lack of support from upper management", "d) Appropriate use of management techniques", "e) Project termination not planned"],
+                answer: "d",
+                explanation: "Appropriate use of management techniques is a factor for project success, not failure."
+            },
+            {
+                topic: "Project Management",
+                question: "51. From among the following outcomes which is not a reason for project success?",
+                options: ["a) Completed on time", "b) Within budget", "c) Below the desired performance level", "d) Efficient and effective utilization of resources", "e) Satisfies the stakeholders"],
+                answer: "c",
+                explanation: "Achieving results below the desired performance level indicates a project shortfall or failure, not success."
+            },
+            {
+                topic: "Project Management",
+                question: "52. From among the following characteristics which does not have a major contribution to making of an effective project team?",
+                options: ["a) Ideal and complementary skill set", "b) Clear and common goal", "c) Clear definition of responsibility", "d) Support from senior management", "e) Friendly relations"],
+                answer: "e",
+                explanation: "While positive, 'friendly relations' are less critical for team effectiveness than clear goals, skills, responsibilities, and support."
+            },
+            {
+                topic: "Project Management",
+                question: "53. An expected output over the life of a project would be classified as:",
+                options: ["a) A deliverable", "b) A product", "c) An end object", "d) An objective", "e) A target"],
+                answer: "a",
+                explanation: "A deliverable is any unique and verifiable product, result, or capability to perform a service that is required to be produced to complete a process, phase, or project."
+            },
+            {
+                topic: "Project Management",
+                question: "54. Which of the following is not one of the basic classifications of project priorities?",
+                options: ["a) Profit", "b) Cost", "c) Time", "d) Scope", "e) All of the above are basic classifications"],
+                answer: "a",
+                explanation: "Project priorities typically revolve around managing constraints like Scope, Time, and Cost (the 'Iron Triangle'). Profit is a business outcome."
+            },
+            {
+                topic: "Project Management",
+                question: "55. The lowest level in the hierarchical breakdown of the WBS is",
+                options: ["a) A work package", "b) Sub deliverables", "c) A cost account", "d) Major deliverables", "e) The project"],
+                answer: "a",
+                explanation: "A work package is the lowest level of the Work Breakdown Structure (WBS) for which cost and duration can be reliably estimated and managed."
+            },
+            {
+                topic: "Project Management",
+                question: "56. Which of the following represents an activity on an AON project network?",
+                options: ["a) An arrow", "b) A line", "c) A node", "d) Both A and B are correct", "e) A, B, and C are all correct"],
+                answer: "c",
+                explanation: "In an Activity-On-Node (AON) network diagram, activities are represented by nodes (boxes or circles)."
+            },
+            {
+                topic: "Project Management",
+                question: "57. Activity D is: (Assuming D has multiple predecessors for a 'merge' scenario)",
+                options: ["a) Merge activity", "b) Burst activity", "c) Parallel activity", "d) Both A and B are correct", "e) A, B, and C are all correct"],
+                answer: "a",
+                explanation: "A merge activity in a network diagram is an activity that has two or more preceding activities directly flowing into it."
+            },
+            {
+                topic: "Project Management",
+                question: "58. A sequence of connected, dependent activities is defined as",
+                options: ["a) Critical path", "b) Parallel path", "c) Activity chain", "d) Path", "e) Dependent chain"],
+                answer: "d",
+                explanation: "A path is any sequence of connected activities in a project network diagram. The critical path is the longest path."
+            },
+            {
+                topic: "Project Management",
+                question: "59. Which of the following is not one of the basic rules to follow when developing project networks?",
+                options: [
+                    "a) The flow is from left to right.", "b) There is a starting node and an ending node for each network.",
+                    "c) Each activity should have a unique label.", "d) The label of each activity should be larger than any activity preceding it.",
+                    "e) For an activity to begin all the succeeding activities should be completed."
+                ],
+                answer: "e",
+                explanation: "An activity can begin only after all its *preceding* (not succeeding) activities are completed."
+            },
+            {
+                topic: "Project Management",
+                question: "60. Activity A is the ________ of activity B. (Assuming A happens before B)",
+                options: ["a) Merge", "b) Burst", "c) Predecessor", "d) Successor", "e) Critical"],
+                answer: "c",
+                explanation: "If activity A must be completed before activity B can start, then A is a predecessor to B."
+            },
+            // Risk Management
+            {
+                topic: "Risk Management",
+                question: "61. Risk management is one of the most important jobs for a",
+                options: ["a) Client", "b) Investor", "c) Production team", "d) Project manager"],
+                answer: "d",
+                explanation: "The project manager is primarily responsible for identifying, analyzing, and responding to project risks."
+            },
+            {
+                topic: "Risk Management",
+                question: "62. Which of the following risk is the failure of a purchased component to perform as expected?",
+                options: ["a) Product risk", "b) Project risk", "c) Business risk", "d) Programming risk"],
+                answer: "a",
+                explanation: "Product risk relates to the possibility that the product itself (or a component) fails to meet its quality or performance standards."
+            },
+            {
+                topic: "Risk Management",
+                question: "63. Which of the following term is best defined by the statement: “There will be a change of organizational management with different priorities.”?",
+                options: ["a) Staff turnover", "b) Technology change", "c) Management change", "d) Product competition"],
+                answer: "c",
+                explanation: "Management change refers to shifts in leadership or organizational structure, which can impact project priorities and support."
+            },
+            {
+                topic: "Risk Management",
+                question: "64. Which of the following term is best defined by the statement: “The underlying technology on which the system is built is superseded by new technology.”?",
+                options: ["a) Technology change", "b) Product competition", "c) Requirements change", "d) None of the mentioned"],
+                answer: "a",
+                explanation: "Technology change risk occurs when the technology used becomes obsolete or is replaced by a newer, more effective one."
+            },
+            {
+                topic: "Risk Management",
+                question: "65. What assess the risk and your plans for risk mitigation and revise these when you learn more about the risk?",
+                options: ["a) Risk monitoring", "b) Risk planning", "c) Risk analysis", "d) Risk identification"],
+                answer: "a",
+                explanation: "Risk monitoring involves tracking identified risks, identifying new risks, executing response plans, and evaluating their effectiveness throughout the project."
+            },
+            {
+                topic: "Risk Management",
+                question: "66. Which of the following risks are derived from the organizational environment where the project is being developed?",
+                options: ["a) People risks", "b) Technology risks", "c) Estimation risks", "d) Organizational risks"],
+                answer: "d",
+                explanation: "Organizational risks stem from the environment, culture, policies, or structure of the organization undertaking the project."
+            },
+            {
+                topic: "Risk Management",
+                question: "67. What all has to be identified as per risk identification?",
+                options: ["a) Threats", "b) Vulnerabilities", "c) Consequences", "d) All of the mentioned"],
+                answer: "d",
+                explanation: "Risk identification involves recognizing potential threats, system vulnerabilities that threats could exploit, and the potential consequences if a risk materializes."
+            },
+            {
+                topic: "Risk Management",
+                question: "68. Which of the following risks are derived from the software or hardware technologies that are used to develop the system?",
+                options: ["a) Managerial risks", "b) Technology risks", "c) Estimation risks", "d) Organizational risks"],
+                answer: "b",
+                explanation: "Technology risks are associated with the tools, techniques, hardware, and software used in the project."
+            },
+            {
+                topic: "Risk Management",
+                question: "69. Which of the following strategies means that the impact of the risk will be reduced?",
+                options: ["a) Avoidance strategies", "b) Minimization strategies", "c) Contingency plans", "d) All of the above"],
+                answer: "b",
+                explanation: "Minimization (or mitigation) strategies aim to reduce the probability or impact of a risk to an acceptable level."
+            },
+            {
+                topic: "Risk Management",
+                question: "70. Which one is not a risk management activity?",
+                options: ["a) Risk assessment", "b) Risk generation", "c) Risk control", "d) None of the mentioned"],
+                answer: "b",
+                explanation: "Risk management activities include identification, analysis, evaluation, treatment (control), and monitoring; 'risk generation' is not a standard term."
+            },
+            {
+                topic: "Risk Management",
+                question: "71. What is the product of the probability of incurring a loss due to the risk and the potential magnitude of that loss?",
+                options: ["a) Risk exposure", "b) Risk prioritization", "c) Risk analysis", "d) All of the mentioned"],
+                answer: "a",
+                explanation: "Risk exposure often quantifies risk as the product of the probability of an event and the impact (loss) of that event."
+            },
+            {
+                topic: "Risk Management",
+                question: "72. Which of the following is not a business risk?",
+                options: [
+                    "a) building an excellent product or system that no one really wants",
+                    "b) losing the support of senior management due to a change in focus or change in people",
+                    "c) lack of documented requirements or project scope",
+                    "d) losing budgetary or personnel commitment"
+                ],
+                answer: "c",
+                explanation: "Lack of documented requirements is primarily a project management risk that can lead to business risks, but the others are more direct business-level risks."
+            },
+            {
+                topic: "Risk Management",
+                question: "73. Which risks are associated with constraints imposed by management or the marketplace?",
+                options: ["a) Business impact risks", "b) Process definition risks", "c) Product size risks", "d) Development environment risks"],
+                answer: "a",
+                explanation: "Business impact risks arise from external factors like market conditions or internal constraints like management decisions affecting the project's business case."
+            },
+            {
+                topic: "Risk Management",
+                question: "74. Risk projection attempts to rate each risk in two ways",
+                options: ["a) likelihood and size", "b) likelihood and probability", "c) likelihood and impact", "d) likelihood and mitigation"],
+                answer: "c",
+                explanation: "Risk analysis (or projection) typically assesses risks based on their likelihood (or probability) of occurrence and their potential impact (or consequence)."
+            },
+            {
+                topic: "Risk Management",
+                question: "75. An effective risk management plan will need to address which of the following issues?",
+                options: ["a) risk avoidance", "b) risk monitoring", "c) contingency planning", "d) all of the above"],
+                answer: "d",
+                explanation: "A comprehensive risk management plan includes strategies for avoidance, mitigation, transference, acceptance, monitoring, and contingency planning."
+            },
+            {
+                topic: "Risk Management",
+                question: "76. The main outcome of risk identification, in a risk management process, is to:",
+                options: [
+                    "a) identify and determine the relative importance of the project risks",
+                    "b) identify and describe all risks that might occur on the project",
+                    "c) identify and determine the responses to the project risks",
+                    "d) identify and describe risks that have occurred on previous projects"
+                ],
+                answer: "b",
+                explanation: "The primary goal of risk identification is to create a comprehensive list of potential risks that could affect the project."
+            },
+            {
+                topic: "Risk Management",
+                question: "77. Project risk management is best described as:",
+                options: [
+                    "a) managing responses to threats", "b) identifying and acknowledging threats and opportunities",
+                    "c) planning responses to threats", "d) minimising threats and maximising opportunities"
+                ],
+                answer: "d",
+                explanation: "Effective project risk management aims to proactively identify, assess, and respond to both negative risks (threats) and positive risks (opportunities)."
+            },
+            {
+                topic: "Risk Management",
+                question: "78. Risks in a project are possible unplanned events or situations with negative repercussions. Systematic risk management is therefore...",
+                options: [
+                    "a) an essential precondition for project planning", "b) an essential precondition for quality management",
+                    "c) an essential precondition for achieving the project goals", "d) an essential precondition for project budgeting"
+                ],
+                answer: "c",
+                explanation: "Systematic risk management is crucial for identifying potential problems and implementing strategies to ensure project goals can be achieved."
+            },
+            {
+                topic: "Risk Management",
+                question: "79. Quote: \"Anyone who runs a project without risk management is engaging in risky management\". Which of the risks below should be rated as \"very high\", if your analysis has shown such a risk?”",
+                options: [
+                    "a) Deviation from budgeted project costs by plus 10%", "b) Negligible deviation from project scope (functional scope)",
+                    "c) Schedule overrun by 10% of project duration", "d) Project result not useable"
+                ],
+                answer: "d",
+                explanation: "A project result that is not usable represents a catastrophic failure and the highest possible negative impact."
+            },
+            {
+                topic: "Risk Management",
+                question: "80. The main aim of a project risk management process should be to:",
+                options: [
+                    "a) identify project risks and then manage them appropriately.", "b) identify all project risks and transfer them immediately.",
+                    "c) identify all the things that are threats or opportunities on a project.", "d) satisfy the organisation’s project management process."
+                ],
+                answer: "a",
+                explanation: "The core of risk management is to identify potential risks and then implement appropriate strategies to manage them effectively."
+            },
+            // Week 7&8 - Innovations
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "1. (W7/8) New innovations typically tend to:",
+                options: ["A) be adopted very slowly at first.", "B) eliminate monopoly rents when they are first introduced.", "C) reduce the effectiveness of future enabling technologies.", "D) eliminate incumbent inertia for late entrants."],
+                answer: "A",
+                explanation: "The adoption of new innovations often follows an S-curve, starting slowly as early adopters try them out."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "2. (W7/8) Once a new product design becomes a dominant design:",
+                options: ["A) the product design is adopted by the majority of producers.", "B) the product is no longer profitable.", "C) the architecture on which the industry can focus its efforts is destabilized.", "D) it becomes difficult for competitors to imitate."],
+                answer: "A",
+                explanation: "A dominant design emerges when it's widely accepted and adopted by the majority of producers in an industry, leading to standardization."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "3. (W7/8) The first entrants to sell in a new product or service category are referred to as ________.",
+                options: ["A) laggards", "B) pioneers", "C) early followers", "D) early leaders"],
+                answer: "B",
+                explanation: "Pioneers (or first movers) are the initial companies to develop or sell a new product or service."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "4. (W7/8) Ceramic Customs Corp. required a specific type of ceramic... only one supplier... failed to get any reduction on the cost. This was because:",
+                options: ["A) the supply was unlimited.", "B) the supplier had more bargaining power than the firm.", "C) the supply exceeded the demand.", "D) the industry had barriers to entry."],
+                answer: "B",
+                explanation: "When a supplier is the sole source for a critical input, they typically have significant bargaining power over the buyer."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "5. (W7/8) Arica Software Inc. is trying to estimate the installed base for its software. It is trying to assess the number of:",
+                options: ["A) users of its software.", "B) areas in which its software can be applied.", "C) substitutes available for its software.", "D) developers working on its software."],
+                answer: "A",
+                explanation: "The installed base refers to the number of units of a product or technology currently in use by customers."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "6. (W7/8) Marine Systems was first... Unicorn Systems developed similar software... outperformed... became market leader. Unicorn Systems is an example of a(n) ________.",
+                options: ["A) late mover", "B) eccentric laggard", "C) early follower", "D) first Pioneer"],
+                answer: "C",
+                explanation: "Early followers enter a market after pioneers but can succeed by learning from pioneers' mistakes and offering superior products."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "7. (W7/8) Technological innovations increase:",
+                options: ["A) the gross domestic product of an economy.", "B) product life cycles.", "C) the production costs of multiple product variations.", "D) the time required for product development and introduction."],
+                answer: "A",
+                explanation: "Technological innovations often lead to increased productivity, new industries, and economic growth, contributing to a higher GDP."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "8. (W7/8) Digital cameras replaced film cameras. Therefore, digital cameras are an example of ________.",
+                options: ["A) component innovation", "B) incremental technology", "C) discontinuous technology", "D) modular innovation"],
+                answer: "C",
+                explanation: "Discontinuous (or radical) technology significantly changes existing products or creates entirely new markets, often rendering previous technologies obsolete."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "9. (W7/8) Which of the following is true of technological innovations?",
+                options: ["A) Technological innovations increase production costs and reduce product differentiation.", "B) Technological innovations decrease the amount of output achievable from a given quantity of labor and capital.", "C) Technological innovations slow down product obsolescence and lengthen the product development cycles.", "D) Technological innovations help increase a country's gross domestic product."],
+                answer: "D",
+                explanation: "Technological innovations are a key driver of economic growth, improved efficiency, and new product/service offerings, thus increasing GDP."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "10. (W7/8) Which of the following is an example of user innovation?",
+                options: ["A) Sandra, an engineer, has developed a device that helps track the location of her teenage daughter's car.", "B) Ivan, a scientist... has developed an anti-inflammatory drug for the company to commercialize.", "C) Samuel has invented a detachable bicycle in order to make profits by selling it...", "D) Jessica, an ace designer... has been asked to work on a dyeing technique..."],
+                answer: "A",
+                explanation: "User innovation occurs when individuals or firms develop innovations for their own use, rather than for sale by a manufacturer."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "11. (W7/8) Ron is highly skeptical about new ideas... has not yet bought a satellite television... Ron:",
+                options: ["A) belongs to the early majority.", "B) is an early adopter.", "C) is an innovator.", "D) is a laggard."],
+                answer: "D",
+                explanation: "Laggards are the last group to adopt an innovation, often skeptical and resistant to change."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "12. (W7/8) Once a new product design becomes a dominant design:",
+                options: ["A) the product design is adopted by the majority of producers.", "B) the architecture on which the industry can focus its efforts is destabilized.", "C) it becomes difficult for competitors to imitate.", "D) the product is no longer profitable."],
+                answer: "A",
+                explanation: "A dominant design establishes a de facto standard, leading to widespread adoption by producers and a focus on process improvements and complementary innovations."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "13. (W7/8) ________ are regional groups of firms that have a connection to a common technology...",
+                options: ["A) Technology incubators", "B) Strategic business units", "C) Technology clusters", "D) Technology transfer offices"],
+                answer: "C",
+                explanation: "Technology clusters (like Silicon Valley) are geographic concentrations of interconnected companies, suppliers, and associated institutions in a particular field."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "14. (W7/8) Neon Electronics Inc. ... adopted a dominant design for its television audio speakers. Which is most likely true?",
+                options: ["A) Neon Electronics will face decreasing returns to its adoption of the dominant design.", "B) The design adopted by Neon Electronics will be unpopular among most of the other manufacturers.", "C) Neon Electronics will have increased opportunities to develop complementary assets.", "D) Neon Electronics will have to invest heavily in R&D to come up with new designs..."],
+                answer: "C",
+                explanation: "With a dominant design, firms can focus on developing complementary assets, improving manufacturing processes, and marketing, rather than radical design changes."
+            },
+            {
+                topic: "Week 7&8 - Innovations",
+                question: "15. (W7/8) TechToTeach Co. developed... product for students to take faster notes... widely accepted... increasing inflow. This technology is a(n)________ project.",
+                options: ["A) breakthrough", "B) advanced R&D", "C) platform", "D) derivative"],
+                answer: "A",
+                explanation: "A breakthrough project typically involves a new technology or product that creates a significant new market or dramatically changes an existing one, leading to substantial returns."
+            },
+            // Week 9 - Standards
+            {
+                topic: "Week 9 - Standards",
+                question: "Q1: (W9) Standards can be classified by function and by:",
+                options: ["A. Language", "B. Size", "C. Origin", "D. Age"],
+                answer: "C",
+                explanation: "Standards are often classified by their origin (e.g., company, national, international) and their function (e.g., basic, product, performance)."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q2: (W9) Management system standards specify requirements that can be applied to any organization, regardless of the product it makes or the service it performs.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "Management system standards (like ISO 9001 or ISO 14001) provide a framework applicable across various types of organizations."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q3: (W9) An example of a trade association that develops standards is:",
+                options: ["A. American Gear Manufacturers Association", "B. National Electrical Manufacturers Association", "C. Telecommunications Industry Association", "D. All of the above"],
+                answer: "D",
+                explanation: "Many trade associations develop industry-specific standards to ensure quality, interoperability, and safety."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q4: (W9) National standards may be mandatory or voluntary.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "Some national standards are incorporated into law (mandatory), while others are adopted voluntarily by industries."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q5: (W9) Which statement is correct?",
+                options: ["A. A code is a standard or collection of standards that has been adopted by one or more governmental authorities and has the force of law.", "B. A code is written by a government agency.", "C. A code is not mandatory."],
+                answer: "A",
+                explanation: "A code typically refers to standards that have been legally adopted by a governmental body, making them mandatory."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q6: (W9) A national standard may be adopted for:",
+                options: ["A. Regional use", "B. International use", "C. Both"],
+                answer: "C",
+                explanation: "National standards can be adopted regionally (e.g., by a group of countries) or serve as the basis for international standards."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q7: (W9) With the increasing use of international standards, there will no longer be a need for national standards bodies.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "National standards bodies still play roles in adopting international standards, developing national deviations, or creating standards for unique national needs."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q8: (W9) Name one way of reducing barriers to trade that is evident today",
+                options: ["A. Eliminate all standards", "B. Move away from regulations toward the use of international standards based on consensus processes", "C. Harmonize all countries' regulations", "D. None of the above"],
+                answer: "B",
+                explanation: "Harmonizing national regulations with international consensus-based standards helps reduce technical barriers to trade."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q9: (W9) Standards have evolved from being a technical issue to being",
+                options: ["A. Unrelated to business", "B. Of interest only to standards developing organizations", "C. A reason to increase prices", "D. A business issue of strategic importance"],
+                answer: "D",
+                explanation: "Standards are increasingly recognized for their strategic importance in business, affecting market access, innovation, and competitiveness."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q10: (W9) Which statement is correct?",
+                options: ["A. Harmonized standards are a group of standards approved by different standardization bodies.", "B. Harmonized standards establish interchangeability of products, processes and services.", "C. Harmonized standards are barriers to trade."],
+                answer: "A",
+                explanation: "Harmonized standards are common standards agreed upon by different bodies to ensure consistency; B is a goal, not the definition."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q11: (W9) By using standards, business can",
+                options: ["A. Simplify product development", "B. Enhance acceptability of products", "C. Both"],
+                answer: "C",
+                explanation: "Standards provide guidelines that can simplify development and improve market acceptance by ensuring quality and interoperability."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q12: (W9) In many industries, market access is enhanced by",
+                options: ["A. Product testing", "B. Certification", "C. Management system registration", "D. All of the above"],
+                answer: "D",
+                explanation: "Testing, certification, and management system registration (often based on standards) all demonstrate compliance and can enhance market access."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q13: (W9) Which statement is correct?",
+                options: ["A. A code is a standard or collection of standards that has been adopted by one or more governmental authorities and has the force of law.", "B. A code is written by a government agency", "C. A code is not mandatory", "D. A code cannot be changed"],
+                answer: "A",
+                explanation: "This is a repeat of Q5; a code is a legally adopted set of standards."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q14: (W9) All of the following organizations develop standards: consortia, trade associations, professional societies, companies, government agencies, American National Standards Institute",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "Various types of organizations contribute to standards development; ANSI accredits standards developers in the U.S."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q15: (W9) Which statement is correct regarding balance in voluntary consensus standards?",
+                options: ["A. No single interest category should constitute more than one-third of the membership of a committee.", "B. A majority of the participants in a standards committee must be from industry.", "C. No single interest category should constitute a majority of the membership of a committee dealing with product standards."],
+                answer: "C",
+                explanation: "Balance in standards development means ensuring no single interest group (producer, user, general interest) dominates the committee."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q16: (W9) The key principles of voluntary consensus standard are",
+                options: ["A. Openness", "B. Balance", "C. Consensus", "D. All of the above"],
+                answer: "D",
+                explanation: "Openness, balance of interests, due process, and consensus are core principles of voluntary consensus standards development."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q17: (W9) Consensus means that a committee has reached unanimous agreement.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "Consensus implies general agreement and resolution of significant objections, but not necessarily unanimity."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q18: (W9) How long does it take to produce a standard?",
+                options: ["A. One year", "B. Two years", "C. Five years", "D. Any of the above"],
+                answer: "D",
+                explanation: "The time to develop a standard can vary widely depending on its complexity, the consensus-building process, and the number of stakeholders."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q19: (W9) Which one of the followings establishes conformity and interoperability by defining dimensions and qualities.",
+                options: ["A. Basic standards", "B. Product standards", "C. Performance standards"],
+                answer: "B",
+                explanation: "Product standards specify requirements for products, such as dimensions, material qualities, and test methods, to ensure conformity and interoperability."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q20: (W9) Which one of the followings specifies the level of expected performance for a product and may include test methods that simulate performance under actual conditions",
+                options: ["A. Basic standards", "B. Product standards", "C. Performance standards"],
+                answer: "C",
+                explanation: "Performance standards define how a product should perform its function, often including test methods, without dictating specific design."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q21: (W9) What type of standards specifies the technical characteristics of a product in terms of how it is to be constructed",
+                options: ["A. Design standards", "B. Specification", "C. Process standards"],
+                answer: "A",
+                explanation: "Design standards (or prescriptive standards) detail how a product must be constructed, including materials and dimensions."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q22: (W9) A set of conditions and requirements of precise and limited application that provide a detailed description of a procedure, process, material, product, or service is called",
+                options: ["A. Design standards", "B. Specification", "C. Process standards"],
+                answer: "B",
+                explanation: "A specification is a detailed document providing precise requirements for a material, product, process, or service."
+            },
+            {
+                topic: "Week 9 - Standards",
+                question: "Q23: (W9) The series of actions or operations used in making a product",
+                options: ["A. Design standards", "B. Specification", "C. Process standards"],
+                answer: "C",
+                explanation: "Process standards define the requirements for a series of actions or operations, such as in manufacturing or service delivery."
+            },
+            // Week 10 - Safety
+            {
+                topic: "Week 10 - Safety",
+                question: "1. (W10) A widely used accident prevention technique is:",
+                options: ["a. CPR with AED", "b. Fail-safe designs", "c. Fellow servant rule", "d. Employer liability"],
+                answer: "b",
+                explanation: "Fail-safe designs are engineered to ensure that a system remains safe or defaults to a safe state in the event of a failure."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "2. (W10) Which of the following would not generally be considered a member of the safety and health team for a large company?",
+                options: ["a. Marketing vice-president", "b. Dietician", "c. Occupational nurse", "d. Radiation control specialist"],
+                answer: "a",
+                explanation: "While marketing may consider safety in product promotion, the VP is not typically a core member of the operational safety and health team."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "3. (W10) The three Es of safety are:",
+                options: ["a. Engineering, education, and employer liability", "b. Engineering, education, and employee responsibility", "c. Engineering, education, and elimination of hazards", "d. Engineering, education, and enforcement"],
+                answer: "d",
+                explanation: "The 'Three Es' of safety are Engineering (designing out hazards), Education (training on safe practices), and Enforcement (ensuring compliance)."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "4. (W10) Typically the most frequently injured body part is:",
+                options: ["a. Head", "b. Foot", "c. Neck", "d. Back"],
+                answer: "d",
+                explanation: "Back injuries are among the most common and costly workplace injuries due to lifting, repetitive motion, and poor ergonomics."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "5. (W10) A symptom of carpal tunnel syndrome is:",
+                options: ["a. Frequent dizziness", "b. Numbness", "c. Tingling in the foot", "d. Pain in the knee or ankle"],
+                answer: "b",
+                explanation: "Carpal tunnel syndrome involves compression of the median nerve in the wrist, leading to numbness, tingling, or pain in the hand and arm."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "6. (W10) Repetitive strain injury is a broad and generic term that encompasses a variety of injuries typically associated with which body parts?",
+                options: ["a. Hands, arms, neck, and shoulders", "b. Legs, feet, back, and ribs", "c. Head, neck, shoulders, and back", "d. Groin, sternum, chest, and back"],
+                answer: "a",
+                explanation: "RSIs are common in the upper limbs (hands, wrists, arms) and neck/shoulders due to repetitive tasks, forceful exertions, or awkward postures."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "7. (W10) One of the reasons protecting the corporate image through better workplace safety and health is that it:",
+                options: ["a. Makes it easier to attract top-notch personnel", "b. Reduces marketing costs", "c. Increases CEO compensation", "d. Reduces OSHA scrutiny"],
+                answer: "a",
+                explanation: "A strong safety record and positive corporate image can make a company more attractive to potential employees."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "8. (W10) A tertiary witness to a workplace accident is one who:",
+                options: ["a. Heard the accident and turned to view it right after it happened", "b. Was not present at the accident but has knowledge pertinent to it", "c. Saw the accident but is not sure what happened or how", "d. Was involved in the accident but was not injured"],
+                answer: "b",
+                explanation: "A tertiary witness was not present during the event but can provide relevant background information or context."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "9. (W10) Which of the following is NOT a broad category of common causes of workplace accidents?",
+                options: ["a. Decision to work unsafely", "b. Unsafe conditions", "c. Unsafe acts", "d. Misinterpretation of OSHA standards"],
+                answer: "d",
+                explanation: "While misinterpreting standards can lead to unsafe acts/conditions, the primary categories are typically unsafe acts, unsafe conditions, and human factors (like deciding to work unsafely)."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "10. (W10) The purpose of the accident report is to:",
+                options: ["a. Protect the company from litigation", "b. Record the findings of the accident investigation including causes and recommended corrective action", "c. Create the documentation needed to terminate unsafe employees", "d. All of the above"],
+                answer: "b",
+                explanation: "The primary purpose of an accident report is to document the investigation's findings to prevent future occurrences, not for blame or solely for litigation."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "11. (W10) One key to getting the facts in an interview after an accident is to:",
+                options: ["a. Ask open-ended questions", "b. Bring all of the witnesses together in the same room at the same time", "c. Record the interview", "d. All of the above"],
+                answer: "a",
+                explanation: "Open-ended questions encourage witnesses to provide detailed, narrative responses rather than simple yes/no answers, yielding more information."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "12. (W10) One method for measuring mental workload is:",
+                options: ["a. Behavioral time sharing", "b. Psychological profiling", "c. Physiological profiling", "d. None of the above"],
+                answer: "a",
+                explanation: "Behavioral time-sharing assesses mental workload by requiring a person to perform a primary task while simultaneously handling a secondary task."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "13. (W10) A mistake that accident investigators should avoid is:",
+                options: ["a. Failing to investigate near misses", "b. Taking ineffective corrective action", "c. Failing to investigate in a timely manner", "d. All of the above"],
+                answer: "d",
+                explanation: "All listed options are crucial errors to avoid in accident investigation to ensure thoroughness and effective prevention."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "14. (W10) Which of the following determines when a person will be comfortable working?",
+                options: ["a. Job satisfaction", "b. Level of pay", "c. Psychosomatic stress tolerance", "d. Circadian rhythm"],
+                answer: "d",
+                explanation: "Circadian rhythms are natural, internal processes that regulate the sleep-wake cycle and influence alertness and performance throughout the day."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "15. (W10) Professionals use which of the following to determine how workers feel about their jobs?",
+                options: ["a. Nominal group technique", "b. Brainstorming sessions", "c. Psychosocial questionnaires", "d. Ink blot tests"],
+                answer: "c",
+                explanation: "Psychosocial questionnaires are surveys designed to assess employee perceptions of job stress, satisfaction, organizational culture, and other work-related feelings."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "16. (W10) Shift work can lead to which of the following?",
+                options: ["a. Lower job satisfaction", "b. Higher productivity", "c. Less overtime", "d. Safer work environment"],
+                answer: "a",
+                explanation: "Disruptions to circadian rhythms and social life due to shift work can often lead to decreased job satisfaction and increased stress."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "17. (W10) Which of the following is NOT a step in the job safety analysis (JSA) process?",
+                options: ["a. Breaking a job down into chronological steps", "b. Identifying potential hazards for each step", "c. Developing procedures to eliminate or reduce potential hazards", "d. Applying evaluation methodologies"],
+                answer: "d",
+                explanation: "While evaluation is implicit, 'applying evaluation methodologies' is too vague; the core JSA steps are breaking down the job, identifying hazards, and developing controls."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "18. (W10) Which of the following are effective strategies for reducing stress in the workplace?",
+                options: ["a. Reducing job ambiguity", "b. Increasing worker feedback", "c. Increasing job autonomy", "d. All of the above"],
+                answer: "d",
+                explanation: "Clear roles, constructive feedback, and a sense of control over one's work (autonomy) are all effective in reducing workplace stress."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "19. (W10) When providing safety and health training for workers with limited English speaking capabilities, it is important to:",
+                options: ["a. Require the workers to complete the TOFL before the training", "b. Require the workers to pass the GED before the training", "c. Use more hands-on activities", "d. Use more classroom instruction"],
+                answer: "c",
+                explanation: "Hands-on activities, visual aids, and demonstrations are more effective than purely verbal instruction when language barriers exist."
+            },
+            {
+                topic: "Week 10 - Safety",
+                question: "20. (W10) Which of the following is NOT an objective of supervisor safety training?",
+                options: ["a. Involve supervisors in accident prevention", "b. Establish the supervisors as a key player in preventing accidents", "c. Decrease workload for safety professionals", "d. Provide supervisors with information on accident prevention methods"],
+                answer: "c",
+                explanation: "The primary goal of supervisor safety training is to empower them in safety efforts, not necessarily to reduce the safety professional's workload (though it might be a byproduct)."
+            },
+            // Week 11 - Intellectual Property
+            {
+                topic: "Week 11 - IP",
+                question: "Q1: (W11) Which of the following IS NOT regarded as an industrial property.",
+                options: ["a. Trademark", "b. Design", "c. Copyright", "d. None of the above"],
+                answer: "c",
+                explanation: "Copyright protects literary and artistic works, while industrial property typically covers inventions (patents), trademarks, and industrial designs."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q2: (W11) The period of protection of trademarks in Turkey is ______ years from the date of application for registration and This term shall be renewed for periods of ______ years.",
+                options: ["a. 20/10", "b. 10/10", "c. 20/20", "d. 10/20"],
+                answer: "b",
+                explanation: "In Turkey, trademark registration is valid for 10 years from the application date and can be renewed for subsequent 10-year periods."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q3: (W11) Which of the following is patentable?",
+                options: ["a. Discoveries, scientific theories and mathematical methods;", "b. Computer programs;", "c. Products with aesthetical creations , belles-lettres, artworks and treatise;", "d. None of the above."],
+                answer: "d",
+                explanation: "The listed items (discoveries, abstract theories, computer programs as such, aesthetic creations) are generally excluded from patentability."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q4: (W11) Which of the following statements on industrial design under Turkish Law IS FALSE?",
+                options: ["a. The applications for Turkish design registrations are made to the Ministry of Culture and Tourism.", "b. Under Turkish Law novelty and having an individual character are two conditions for the protection of an industrial design.", "c. Once a design registered, others cannot use the design without permission.", "d. None of the above"],
+                answer: "a",
+                explanation: "In Turkey, design applications are filed with the Turkish Patent and Trademark Office (TÜRKPATENT), not the Ministry of Culture and Tourism."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q5: (W11) Which of the following IS NOT one of the international agreements that the Turkey is party in the area of copyrights?",
+                options: ["a. Berne Convention", "b. Trips Agreement", "c. Rome Convention", "d. Viyana Convention"],
+                answer: "d",
+                explanation: "The Berne, TRIPS, and Rome Conventions are key international treaties for copyright and related rights; 'Viyana (Vienna) Convention' often refers to other legal areas (e.g., law of treaties, sale of goods)."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q6: (W11) Which of the following IS NOT covered by copyrights?",
+                options: ["a. industrial designs", "b. literary works (such as novels, poems and plays),", "c. films, music, artistic works (e.g., drawings, paintings, photographs and sculptures) and", "d. architectural design"],
+                answer: "a",
+                explanation: "Industrial designs are protected by specific design rights, although some artistic aspects might also have copyright overlap; core industrial designs are distinct."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q7: (W11) Which of the following IS NOT covered by industrial property rights?",
+                options: ["a. patents for inventions,", "b. patents for architectural design", "c. patents for trademarks,", "d. patents for industrial designs and geographical indications"],
+                answer: "b",
+                explanation: "Architectural designs are primarily protected by copyright; 'patents for architectural design' isn't standard terminology. 'Patents for trademarks' is also incorrect; trademarks are registered."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q8: (W11) Which of the following international conventions are administered by the World Intellectual Property Organization (WIPO)?<br>I. Paris Convention (Industrial Property)<br>II. Berne Convention (Literary/Artistic Works).",
+                options: ["a. Only I", "b. Only II", "c. I and II", "d. None of them"],
+                answer: "c",
+                explanation: "WIPO administers both the Paris Convention for the Protection of Industrial Property and the Berne Convention for the Protection of Literary and Artistic Works."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q9: (W11) I. Tariş II. TSE III. ISO 2000. A guarantee mark ... Which one(s) is/are a guarantee mark?",
+                options: ["a. Only I", "b. I, II and III", "c. II and III", "d. I and III"],
+                answer: "c",
+                explanation: "TSE is a certification/guarantee mark. ISO 2000 (if it implies certification to an ISO standard like ISO 9001) functions as a guarantee of quality standards. Tariş is more likely a collective or regular trademark."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q10: (W11) I. Tariş II. TSE III. ISO 2000. Collective mark ... Which one(s) is a guarantee mark? (Interpreted as asking for Collective Mark)",
+                options: ["a. Only I", "b. I, II and III", "c. II and III", "d. I and III"],
+                answer: "a",
+                explanation: "If interpreting for a 'collective mark' (distinguishing goods of a group), Tariş (a union of agricultural cooperatives) fits best."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q11: (W11) Trademark registration ... Which IS NOT an absolute ground for refusal?",
+                options: ["a. likelihood of confusion", "b. lack of distinctiveness,", "c. lack of descriptive nature", "d. prohibition of registration under the Paris Convention"],
+                answer: "a",
+                explanation: "Likelihood of confusion with a prior mark is a *relative* ground for refusal, not an absolute one. Lack of descriptive nature is actually favorable."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q12: (W11) Trademark registration ... Which is a relative ground for refusal?",
+                options: ["a. lack of distinctiveness,", "b. prohibition of registration under the Paris Convention", "c. lack of descriptive nature", "d. likelihood of confusion"],
+                answer: "d",
+                explanation: "Relative grounds for refusal pertain to conflicts with existing third-party rights, such as likelihood of confusion with an earlier trademark."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q13: (W11) ''Trademark'' ... Which statement IS FALSE?",
+                options: ["a. Application must be filed.", "b. Trademark registration may only be denied based on “absolute grounds.", "c. TURKPATENT makes an ex-officio examination based on absolute grounds.", "d. None of the above"],
+                answer: "b",
+                explanation: "Trademark registration can be denied based on both absolute grounds (e.g., lack of distinctiveness) and relative grounds (e.g., conflict with prior rights)."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q14: (W11) ''Trademark'' ... Which statement IS FALSE?",
+                options: ["a. Goods violating right may be withdrawn.", "b. Owner can prevent counterfeit.", "c. Trademark rights may not be the subject of inheritance, pledge, seizure, transfer or license.", "d. Owner can demand protection from courts."],
+                answer: "c",
+                explanation: "Trademark rights are valuable assets and can indeed be inherited, pledged, seized, transferred, or licensed."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q15: (W11) A patent provides patent owners with protection ... generally _______ years.",
+                options: ["a. 10", "b. 20", "c. 30", "d. 40"],
+                answer: "b",
+                explanation: "The standard term of patent protection under the TRIPS Agreement (and in many countries) is generally 20 years from the filing date."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q16: (W11) A patent is an exclusive right ... Which statement IS FALSE?",
+                options: ["a. Invention must be novel.", "b. Invention must be useful/susceptible of industrial application.", "c. An invention not in state of the art is novel.", "d. If an invention lacking any inventive step shall not be protected under any circumstances."],
+                answer: "d",
+                explanation: "While an invention lacking inventive step won't get a patent, it might sometimes be eligible for other forms of protection like a utility model in some jurisdictions (which have lower inventive step requirements)."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q17: (W11) Under Turkish Law patent protection is ________ years ... utility model is _______ years. Not extended.",
+                options: ["a. 10/10", "b. 20/10", "c. 30/20", "d. 20/20"],
+                answer: "b",
+                explanation: "In Turkey, patents are protected for 20 years from the application date, and utility models for 10 years, with no extensions for these terms."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q18: (W11) Which statement on industrial design under Turkish Law IS FALSE?",
+                options: ["a. Refers to ornamental aspects.", "b. Applied to wide variety of products.", "c. Handicrafts are not protected by industrial design law.", "d. Must be new/original and nonfunctional for protection."],
+                answer: "c",
+                explanation: "Handicrafts can be protected by industrial design law if they meet the criteria of novelty and individual character."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q19: (W11) Which statement on registration and term of protection of an industrial design IS FALSE?",
+                options: ["a. Applications to Turkish Patent and Trademark Office.", "b. International applications under Hague Agreement.", "c. Once registered, gives absolute rights for ten years.", "d. Registrations renewable for 5-year periods, max 25 years."],
+                answer: "c",
+                explanation: "In Turkey, the initial protection for a registered design is typically 5 years, renewable in 5-year periods up to a total of 25 years, not a fixed 10-year initial term."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q20: (W11) Design will terminate: I. Expiry/non-renewal, II. Surrender, III. Court invalidity.",
+                options: ["a. Only I", "b. I, II and III", "c. II and III", "d. I and III"],
+                answer: "b",
+                explanation: "All three are valid reasons for the termination of design rights: expiry/non-renewal, voluntary surrender by the holder, or a court ruling of invalidity."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q21: (W11) Which statement on copyrights IS FALSE?",
+                options: ["a. Granted to «works» reflecting «individual character» of author.", "b. Literary and scientific works (excluding the computer programs and dramatical work) are protected", "c. Adaptations and compilations also protected if individual character.", "d. Musical, fine arts, cinematographic works protected."],
+                answer: "b",
+                explanation: "Computer programs (as literary works) and dramatic works are indeed protected by copyright; they are not excluded."
+            },
+            {
+                topic: "Week 11 - IP",
+                question: "Q22: (W11) Term of copyright protection: lifetime of author + _____ years. If multiple authors, _____ years after death of last.",
+                options: ["a. 70/70", "b. 60/60", "c. 70/60", "d. 60/70"],
+                answer: "a",
+                explanation: "In many jurisdictions, including Turkey and the EU, copyright protection for literary and artistic works lasts for the life of the author plus 70 years."
+            },
+            // Week 12 - Remanufacturing
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "1. (W12) In which product recovery option is quality standard “as good as new”?",
+                options: ["A. Repairing", "B. Remanufacturing", "C. Reconditioning", "D. Recycling"],
+                answer: "B",
+                explanation: "Remanufacturing aims to restore a product to at least its original performance specifications, often with a warranty 'as good as new'."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "2. (W12) Which company is the pioneer remanufacturing company in the world?",
+                options: ["A. Apple", "B. Volkswagen", "C. Xerox", "D. Toyota"],
+                answer: "C",
+                explanation: "Xerox is widely recognized as a pioneer in remanufacturing, especially with its photocopiers, starting decades ago."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "3. (W12) Recoverable manufacturing system with direct manufacturing or remanufacturing is called...",
+                options: ["A. Super manufacturing system", "B. Hybrid manufacturing and remanufacturing systems", "C. Remanufacturing system", "D. Combined system"],
+                answer: "B",
+                explanation: "Hybrid systems integrate both traditional manufacturing of new products and remanufacturing of used products within the same or connected facilities."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "4. (W12) What are the motivations for product remanufacturing?",
+                options: ["A. Increased profitability", "B. ethical responsibility", "C. brand protection.", "D. All of the above"],
+                answer: "D",
+                explanation: "Remanufacturing offers economic benefits (profitability), environmental benefits (resource efficiency), and can enhance brand image and customer loyalty."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "5. (W12) A remanufactured product can be sold for ………….. percent of the cost of a new one.",
+                options: ["A. 0-20", "B. 20-40", "C. 40-60", "D. 60-80"],
+                answer: "C",
+                explanation: "Remanufactured products are typically sold at a significant discount compared to new ones, often in the 40-60% (or even up to 80%) range of the new product price."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "6. (W12) In remanufacturing the quality standard is ……………",
+                options: ["A. Super", "B. Normal", "C. As good as new product", "D. None of the above"],
+                answer: "C",
+                explanation: "A key principle of remanufacturing is that the final product meets or exceeds original performance specifications, effectively 'as good as new'."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "7. (W12) ………………… is the series of activities by which discarded materials are collected, sorted, processes and used in the production of new products.",
+                options: ["A. Recycling", "B. Reconditioning", "C. Remanufacturing", "D. Repairing"],
+                answer: "A",
+                explanation: "Recycling involves processing waste materials into new raw materials for manufacturing new products."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "8. (W12) The two main hybrid production strategy is:",
+                options: ["A. Hybrid Push and Kanban", "B. Hybrid Push and Pull", "C. Hybrid Pull and Kanban", "D. None of the above"],
+                answer: "B",
+                explanation: "Hybrid (or mixed) production systems often combine elements of both push (schedule-based) and pull (demand-based) strategies to optimize flow."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "9. (W12) Which step is earlier in remanufacturing?",
+                options: ["A. Cleaning", "B. Testing", "C. Disassembly", "D. Shiping"],
+                answer: "C",
+                explanation: "The remanufacturing process typically begins with complete disassembly of the returned product into its components."
+            },
+            {
+                topic: "Week 12 - Remanufacturing",
+                question: "10. (W12) Which one is among the complicated characteristics of remanufacturing?",
+                options: ["A. Disassembly", "B. Reverse logistics", "C. Uncertainty in the timing and the quantity of returns", "D. All of the above"],
+                answer: "D",
+                explanation: "Remanufacturing faces unique challenges including complex disassembly, managing reverse logistics for core returns, and dealing with uncertainty in the supply of used products."
+            },
+            // Week 13 - Environmental Pollution
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "1. (W13) Which of the following gases produces acid rain?",
+                options: ["A) Carbon dioxide", "B) Sulfur oxides", "C) Carbon monoxide", "D) Ozone"],
+                answer: "B",
+                explanation: "Sulfur oxides (SOx) and nitrogen oxides (NOx) from burning fossil fuels are the primary precursors to acid rain."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "2. (W13) Which is not one of the EPA's six major (criteria) air pollutants?",
+                options: ["A) Particulates", "B) Nitrogen dioxide", "C) Ozone", "D) Carbon dioxide"],
+                answer: "D",
+                explanation: "The six criteria air pollutants are CO, Pb, NO2, O3 (ground-level), PM, and SO2. CO2 is a greenhouse gas but not a criteria pollutant for direct health effects."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "3. (W13) Which toxic gas reduces oxygen delivery by binding to hemoglobin, problematic in poorly ventilated areas?",
+                options: ["A) Sulfur dioxide", "B) Ozone", "C) Carbon monoxide", "D) Nitrogen dioxide"],
+                answer: "C",
+                explanation: "Carbon monoxide (CO) binds to hemoglobin more readily than oxygen, reducing the blood's oxygen-carrying capacity."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "4. (W13) Which of the following is not considered as volatile organic matter (VOC)?",
+                options: ["A) Particulates", "B) Methane", "C) Dioxine", "D) Chlorofluorocarbons"],
+                answer: "A",
+                explanation: "Particulates are solid or liquid particles suspended in air, while VOCs are organic chemicals that have a high vapor pressure at ordinary room temperature."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "5. (W13) Which of the following energy sources produces most air pollutants?",
+                options: ["A) Wind energy", "B) Burning petroleum products", "C) Solar energy", "D) Hydropower"],
+                answer: "B",
+                explanation: "The combustion of fossil fuels, including petroleum products and coal, is a major source of various air pollutants."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "6. (W13) Which is NOT a reason for difficulty in changing energy sources away from fossil fuels?",
+                options: ["A) Large technological developments are needed", "B) Transformation in the energy infrastructure is required", "C) Application of alternative energy sources costs less", "D) Energy production would be less centralized"],
+                answer: "C",
+                explanation: "Alternative energy sources often have higher initial costs or require subsidies to be competitive with established fossil fuels, making cost a barrier."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "7. (W13) Which is not used to remove pollutants from power plant emissions?",
+                options: ["A) Scrubbers", "B) Cyclones", "C) Electronic precipitators", "D) Catalytic converters"],
+                answer: "D",
+                explanation: "Catalytic converters are primarily used in vehicle exhaust systems, while scrubbers, cyclones, and electrostatic precipitators are common in industrial/power plant stacks."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "8. (W13) Which statement is correct for stratospheric ozone layer?",
+                options: ["A) Formed by reaction of hydrocarbons with nitrogen oxides and oxygen", "B) Traps heat in the atmosphere reemitted by earth", "C) Filters out most of the UV coming in from the Sun", "D) Reacts with automobile exhaust to form photochemical smog"],
+                answer: "C",
+                explanation: "The stratospheric ozone layer absorbs the majority of the Sun's harmful ultraviolet (UV-B) radiation."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "9. (W13) Which is a health risk associated with ground-level ozone?",
+                options: ["A) Respiratory illnesses", "B) Brain damage", "C) Skin cancer", "D) Kidney damage"],
+                answer: "A",
+                explanation: "Ground-level ozone is a major component of smog and a respiratory irritant that can aggravate asthma and other lung diseases."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "10. (W13) Which chemical does not attack stratospheric ozone layer?",
+                options: ["A) Chlorofluorocarbons", "B) Halons", "C) Methyl bromide", "D) Carbon dioxide"],
+                answer: "D",
+                explanation: "Carbon dioxide is a greenhouse gas that contributes to global warming but does not directly deplete the stratospheric ozone layer like CFCs, halons, and methyl bromide do."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "11. (W13) Which of the following is not a greenhouse gas?",
+                options: ["A) Carbon dioxide", "B) Nitrogen", "C) Methane", "D) Water vapor"],
+                answer: "B",
+                explanation: "Nitrogen (N2) makes up about 78% of the Earth's atmosphere but is not a significant greenhouse gas; CO2, methane (CH4), and water vapor are."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "12. (W13) Which is NOT a predicted consequence of global warming if emissions continue?",
+                options: ["A) Sea level will rise", "B) The number of hurricanes will increase", "C) The global yield of key food crops will increase", "D) Tropical insects will expand their ranges"],
+                answer: "C",
+                explanation: "Global warming is predicted to negatively impact global food security and decrease yields of key crops in many regions, despite potential localized gains."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "13. (W13) Which does NOT serve to reduce greenhouse gas emissions?",
+                options: ["A) Placing a surcharge (tax) on CO2-releasing energy sources", "B) Taking mass transit while going to work", "C) Planting trees in landed areas", "D) Converting from power plants that burn coal to ones that burn petroleum"],
+                answer: "D",
+                explanation: "While petroleum might be slightly less carbon-intensive than some coal, it's still a fossil fuel; this switch isn't a significant long-term solution for emission reduction."
+            },
+            {
+                topic: "Week 13 - Enviro. Pollution",
+                question: "14. (W13) Which statement about Kyoto Protocol is NOT correct?",
+                options: ["A) The United States is strictly bound by Kyoto Protocol.", "B) The treaty allows signatories to trade credits.", "C) China and other developing nations are exempt from cutbacks.", "D) Treaty allows credits by assisting other nations."],
+                answer: "A",
+                explanation: "The United States signed the Kyoto Protocol but never ratified it, and therefore was not legally bound by its emission reduction targets."
+            },
+            // Week 14 - Lifelong Learning / Future of Education
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "1. (W14) Which is not required for lifelong learning?",
+                options: ["a) Distance education", "b) Social media", "c) Printed materials", "d) Brochures"],
+                answer: "d",
+                explanation: "Brochures are for information dissemination, not a core tool or method for sustained lifelong learning like educational platforms or extensive materials."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "2. (W14) Which is not a step for design based learning?",
+                options: ["a) Emphatize", "b) Ideate", "c) Do", "d) Test"],
+                answer: "c",
+                explanation: "Common design thinking steps are Empathize, Define, Ideate, Prototype, Test. 'Do' is too generic; 'Prototype' is more specific."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "3. (W14) Which is not a required skill for future?",
+                options: ["a) Data entry", "b) Problem solving", "c) Creativity", "d) Cognitive skills"],
+                answer: "a",
+                explanation: "Data entry is a routine task increasingly being automated, while complex problem-solving, creativity, and cognitive skills are in higher demand."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "4. (W14) Which is not an important feature of online education?",
+                options: ["a) Self paced", "b) Requires data package", "c) Repeatable", "d) Individualized"],
+                answer: "b",
+                explanation: "Requiring a data package is a logistical necessity or cost, not an inherent educational feature or quality of online learning itself."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "5. (W14) Which is not among the 3C (or 4Cs) that guides future of education?",
+                options: ["a) Comprehension", "b) Communication", "c) Computation", "d) Competition"],
+                answer: "d",
+                explanation: "Key skills for future education often cited are the '4Cs': Critical Thinking, Creativity, Communication, and Collaboration. Competition is generally not listed as a core guiding principle in this context."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "6. (W14) Which one of the following can be the role of the teachers in future?",
+                options: ["a) Guide", "b) Transferring knowledge", "c) Problem solver", "d) All of the above"],
+                answer: "a", // Or D, but 'Guide' is the most encompassing for the shift.
+                explanation: "The teacher's role is evolving from solely a knowledge transmitter to a facilitator or guide, helping students develop skills like problem-solving and critical thinking."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "7. (W14) Which is among the positive qualities of online education?",
+                options: ["a) Teacher paced", "b) Location based", "c) Time based", "d) Self paced"],
+                answer: "d",
+                explanation: "Self-paced learning is a significant advantage of online education, allowing learners to progress according to their own speed and schedule."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "8. (W14) What is the most important skill of 21st century learner should have?",
+                options: ["a) Writing", "b) Coding", "c) Self regulation", "d) Robotics"],
+                answer: "c",
+                explanation: "Self-regulation, including the ability to manage one's own learning, set goals, and stay motivated, is crucial for continuous learning in a rapidly changing world."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "9. (W14) What is the most challenging factor in education system?",
+                options: ["a) internet", "b) assessment", "c) material", "d) technology"],
+                answer: "b",
+                explanation: "Developing effective, fair, and meaningful assessment methods, especially for evolving skills and in diverse learning environments (like online), remains a significant challenge."
+            },
+            {
+                topic: "Week 14 - Lifelong Learning",
+                question: "10. (W14) Which technology can be used mostly in the future of education?",
+                options: ["a) 3D Printers", "b) Drones", "c) Artificial intelligence", "d) Robots"],
+                answer: "c",
+                explanation: "Artificial intelligence (AI) has vast potential to personalize learning, provide intelligent tutoring, automate administrative tasks, and offer new assessment tools in education."
+            }
+        ];
+
+        let shuffledQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questionsAnswered = 0;
+        let quizActive = false;
+
+        const scoreEl = document.getElementById('current-score');
+        const questionsAnsweredEl = document.getElementById('questions-answered');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const questionAreaEl = document.getElementById('question-area');
+        const feedbackAreaEl = document.getElementById('feedback-area');
+        const actionButtonEl = document.getElementById('action-button');
+        const restartButtonEl = document.getElementById('restart-button');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            shuffledQuestions = [...quizData];
+            shuffleArray(shuffledQuestions);
+            currentQuestionIndex = 0;
+            score = 0;
+            questionsAnswered = 0;
+            quizActive = true;
+            updateScoreDisplay();
+            totalQuestionsEl.textContent = shuffledQuestions.length;
+            feedbackAreaEl.style.display = 'none';
+            actionButtonEl.textContent = 'Submit Answer';
+            actionButtonEl.disabled = false;
+            actionButtonEl.style.display = 'inline-block';
+            restartButtonEl.style.display = 'none';
+            displayNextQuestion();
+        }
+
+        function displayNextQuestion() {
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                const currentQ = shuffledQuestions[currentQuestionIndex];
+                let questionTopic = currentQ.topic.includes("W") ? "" : currentQ.topic + " - ";
+                
+                // Adjust question numbering display
+                let questionText = currentQ.question;
+                if (!/^(Q\d+:|\d+\.\s\(W\d+\/\d+\)|\d+\.\s)/.test(questionText)) { // Check if already numbered like "1. " or "Q1:" or "1. (W1/2)"
+                    questionText = `${currentQuestionIndex + 1}. ${questionText}`;
+                }
+
+
+                questionAreaEl.innerHTML = `
+                    <h3>${questionTopic}${questionText}</h3>
+                    <div class="options">
+                        ${currentQ.options.map((option, index) => {
+                            // Extract letter like a, b, A, B, or True/False for value
+                            let optionValue = option.match(/^([a-zA-Z]+(\)|\.|\sTrue|\sFalse))/);
+                            let val = `opt${index}`; // fallback value
+                            if (optionValue && optionValue[1]) {
+                                val = optionValue[1].trim().replace(')','').replace('.','').toLowerCase();
+                                if (val === "true" || val === "false") {
+                                    // keep as is
+                                } else {
+                                    val = val.charAt(0); // single letter
+                                }
+                            }
+                            return `<label><input type="radio" name="option" value="${val}"> ${option}</label>`;
+                        }).join('')}
+                    </div>
+                `;
+                actionButtonEl.textContent = 'Submit Answer';
+                actionButtonEl.disabled = false; // Enable for new question
+                feedbackAreaEl.style.display = 'none';
+            } else {
+                endQuiz();
+            }
+        }
+
+        function processAnswer() {
+            if (!quizActive) return;
+
+            const selectedOptionInput = document.querySelector('input[name="option"]:checked');
+            if (!selectedOptionInput) {
+                alert('Please select an answer!');
+                return;
+            }
+
+            actionButtonEl.disabled = true; // Disable while processing and showing feedback
+
+            const userAnswer = selectedOptionInput.value.toLowerCase();
+            const currentQ = shuffledQuestions[currentQuestionIndex];
+            const correctAnswer = currentQ.answer.toLowerCase();
+
+            questionsAnswered++;
+            let feedbackMessage = '';
+            let feedbackClass = '';
+
+            if (userAnswer === correctAnswer) {
+                score++;
+                feedbackMessage = '<strong>Correct!</strong>';
+                feedbackClass = 'correct-feedback';
+            } else {
+                feedbackMessage = `<strong>Incorrect.</strong> The correct answer was: ${currentQ.answer.toUpperCase()}`;
+                feedbackClass = 'incorrect-feedback';
+            }
+
+            feedbackAreaEl.innerHTML = `
+                <div class="${feedbackClass}">
+                    ${feedbackMessage}
+                    <div class="explanation">${currentQ.explanation}</div>
+                </div>
+            `;
+            feedbackAreaEl.style.display = 'block';
+            updateScoreDisplay();
+
+            // Disable radio buttons after answering
+            document.querySelectorAll('input[name="option"]').forEach(radio => radio.disabled = true);
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                actionButtonEl.textContent = 'Next Question';
+                actionButtonEl.disabled = false; // Re-enable for "Next Question"
+            } else {
+                actionButtonEl.style.display = 'none';
+                restartButtonEl.style.display = 'inline-block';
+                // endQuiz will be called by displayNextQuestion if index is out of bounds
+            }
+        }
+        
+        function handleAction() {
+            if (!quizActive && actionButtonEl.textContent === 'Start Quiz') {
+                startQuiz();
+            } else if (actionButtonEl.textContent === 'Submit Answer') {
+                processAnswer();
+            } else if (actionButtonEl.textContent === 'Next Question') {
+                displayNextQuestion();
+            }
+        }
+
+
+        function updateScoreDisplay() {
+            scoreEl.textContent = score;
+            questionsAnsweredEl.textContent = questionsAnswered;
+        }
+
+        function endQuiz() {
+            quizActive = false;
+            questionAreaEl.innerHTML = `<div class="final-score">Quiz Finished! Your final score: ${score} / ${shuffledQuestions.length}</div>`;
+            feedbackAreaEl.style.display = 'none';
+            actionButtonEl.style.display = 'none';
+            restartButtonEl.style.display = 'inline-block';
+        }
+
+        // Initial setup for the start button
+        actionButtonEl.addEventListener('click', handleAction);
+        totalQuestionsEl.textContent = quizData.length; // Show total questions initially
+    </script>
+</body>
+</html>
